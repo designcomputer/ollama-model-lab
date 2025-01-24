@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Model Lab</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .prompt-section {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 10px;
+            /* Added right margin */
+        }
+
+        .send-button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .send-button:hover {
+            filter: brightness(90%);
+        }
+
+        .send-button:disabled {
+            background-color: #a3d7ae;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .result-content {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+
+        .stats-section {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background-color: white;
+            border-radius: 3px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-family: monospace;
+        }
+
+        .list-box {
+            flex: 1;
+        }
+
+        .list-box select,
+        .model-list {
+            width: 100%;
+            height: 250px;
+            /* This should match your select size="10" height */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .model-list {
+            overflow-y: auto;
+        }
+
+        /* Keep your existing test-model-row styles */
+        .test-model-row {
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .transfer-buttons {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .transfer-button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 40px;
+            font-size: 20px;
+        }
+
+        .clear-button {
+            padding: 8px 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            white-space: nowrap;
+        }
+
+        .transfer-button:hover,
+        .clear-button:hover {
+            filter: brightness(90%);
+        }
+
+        .transfer-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .clear-button:disabled {
+            background-color: #e9acb3;
+            cursor: not-allowed;
+        }
+
+        select option {
+            padding: 4px 8px;
+        }
+
+        select option:checked {
+            background-color: #0d6efd linear-gradient(0deg, #0d6efd 0%, #0d6efd 100%);
+            color: white;
+        }
+
+        .controls {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .controls select {
+            width: auto;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            color: #ff0000;
+            margin-top: 10px;
+        }
+
+        .model-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .prompt-controls {
+            margin-bottom: 15px;
+        }
+
+        .prompt-management {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: stretch;
+            /* This ensures all children stretch to match height */
+        }
+
+        #savedPrompts {
+            height: auto;
+            /* Allow height to be determined by padding */
+            padding: 8px;
+            /* Match the padding of other inputs */
+            margin-top: 0;
+            /* Remove default margin since we're matching heights */
+            flex: 1;
+            /* Allow it to grow */
+        }
+
+
+        .prompt-name-input {
+            padding: 8px;
+            /* Ensure consistent padding with select */
+            height: auto;
+            /* Allow height to be determined by padding */
+        }
+
+        .action-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            color: white;
+        }
+
+
+        .save-button {
+            background-color: #0d6efd;
+        }
+
+        .save-button:hover:not(:disabled) {
+            filter: brightness(90%);
+        }
+
+        .delete-button {
+            background-color: #dc3545;
+        }
+
+        .delete-button:hover:not(:disabled) {
+            filter: brightness(90%);
+        }
+
+        .action-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-button:hover:not(:disabled) {
+            filter: brightness(90%);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .report-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .report-button:hover {
+            background-color: #0b5ed7;
+        }
+
+        .report-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .report-button:disabled {
+            background-color: #a4cafe;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            margin: 0;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            color: #555;
+            transition: color 0.2s;
+        }
+
+        .icon-button:hover {
+            color: #000;
+        }
+
+        .footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .close-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .settings-form label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .settings-form input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .settings-form button {
+            padding: 10px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .settings-form button:hover {
+            background-color: #0b5ed7;
+        }
+
+        .config-note {
+            margin-bottom: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .param-enable {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .param-checkbox {
+            margin: 0;
+        }
+
+        .param-group input[type="number"],
+        .param-group input[type="checkbox"]:not(.param-checkbox) {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .param-group input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        #clearOverrides {
+            background-color: #dc3545;
+        }
+
+        .override-param {
+            background-color: #fff3cd;
+            /* Light yellow background */
+            border-left: 3px solid #ffc107;
+            /* Yellow border */
+        }
+
+
+        .model-list {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .test-model-row {
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .test-model-row:last-child {
+            border-bottom: none;
+        }
+
+        .test-model-row:hover {
+            background-color: #f5f5f5;
+        }
+
+        .test-model-row.selected {
+            background-color: #e2e6ea;
+        }
+
+        .model-name {
+            flex: 1;
+        }
+
+        .config-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 16px;
+        }
+
+        .config-button:hover {
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1 class="header-title">Ollama Model Lab</h1>
+            <div class="header-icons">
+                <a href="https://github.com/designcomputer/ollama-model-lab" class="icon-button" title="View on GitHub"
+                    target="_blank">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                        </path>
+                    </svg>
+                </a>
+                <button class="icon-button" id="settingsButton" title="Settings">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="controls">
+            <label for="sortOrder">Sort by:</label>
+            <select id="sortOrder">
+                <option value="name">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="size">Size (Smallest)</option>
+                <option value="size-desc">Size (Largest)</option>
+            </select>
+        </div>
+        <div class="list-container">
+            <div class="list-box">
+                <h3>Available Models</h3>
+                <select id="modelList" size="10" multiple>
+                    <option>Loading models...</option>
+                </select>
+            </div>
+            <div class="transfer-buttons">
+                <button class="transfer-button" id="addButton" title="Add selected model">→</button>
+                <button class="transfer-button" id="removeButton" title="Remove selected model">←</button>
+                <button class="clear-button" id="clearButton" title="Clear all test models">Clear All</button>
+            </div>
+            <div class="list-box">
+                <h3>Test Models</h3>
+                <select id="testModelSelect" size="10" class="model-list">
+                    <option>No models selected</option>
+                </select>
+                <div id="configSection" style="display: none; margin-top: 10px;">
+                    <button id="configButton" class="config-button"
+                        style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span>Configure Model</span>
+                        <span style="font-size: 16px;">⚙️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="prompt-section">
+            <h3>Test Prompt</h3>
+            <div class="prompt-controls">
+                <div class="prompt-management">
+                    <select id="savedPrompts" class="select">
+                        <option value="">-- Select a saved prompt --</option>
+                    </select>
+                    <input type="text" id="promptName" class="prompt-name-input"
+                        placeholder="Enter prompt name to save...">
+                    <button id="savePromptBtn" class="action-button save-button">Save</button>
+                    <button id="deletePromptBtn" class="action-button delete-button">Delete</button>
+                </div>
+                <textarea id="promptInput" class="prompt-input" placeholder="Enter your prompt here..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button id="sendButton" class="send-button" disabled>Send to Models</button>
+                <div id="reportButtonContainer"></div>
+            </div>
+        </div>
+
+        <div id="results" class="results-section">
+            <!-- Results will be dynamically added here -->
+        </div>
+
+        <div id="error" class="error"></div>
+        <div class="footer">
+            <p>Version 0.1.0 | <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a></p>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" id="closeSettings">&times;</span>
+                <h2>Settings</h2>
+                <form class="settings-form" id="settingsForm">
+                    <div>
+                        <label for="serverUrl">Ollama Server URL:</label>
+                        <input type="text" id="serverUrl" name="serverUrl" placeholder="http://127.0.0.1:11434">
+                    </div>
+                    <button type="submit">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modelConfigModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModelConfig">&times;</span>
+            <h2>Model Configuration Override</h2>
+            <p class="config-note">Only parameters enabled with the checkbox will be overridden. Others will use model
+                defaults.</p>
+            <form class="settings-form" id="modelConfigForm">
+                <div class="grid-container">
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_temperature" class="param-checkbox">
+                            <label for="temperature">Temperature:</label>
+                        </div>
+                        <input type="number" id="temperature" name="temperature" step="0.1" min="0" max="2" value="0.8"
+                            disabled>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_num_ctx" class="param-checkbox">
+                            <label for="num_ctx">Context Window:</label>
+                        </div>
+                        <input type="number" id="num_ctx" name="num_ctx" value="2048" disabled>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_num_predict" class="param-checkbox">
+                            <label for="num_predict">Max Tokens:</label>
+                        </div>
+                        <input type="number" id="num_predict" name="num_predict" value="128" disabled>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_top_k" class="param-checkbox">
+                            <label for="top_k">Top K:</label>
+                        </div>
+                        <input type="number" id="top_k" name="top_k" value="40" disabled>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_top_p" class="param-checkbox">
+                            <label for="top_p">Top P:</label>
+                        </div>
+                        <input type="number" id="top_p" name="top_p" step="0.1" value="0.9" disabled>
+                    </div>
+
+                    <!-- Add more parameters following the same pattern -->
+
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_num_gpu" class="param-checkbox">
+                            <label for="num_gpu">Number of GPUs:</label>
+                        </div>
+                        <input type="number" id="num_gpu" name="num_gpu" min="0" value="1" disabled>
+                    </div>
+
+                    <div class="param-group">
+                        <div class="param-enable">
+                            <input type="checkbox" id="enable_use_mmap" class="param-checkbox">
+                            <label for="use_mmap">Use Memory Mapping:</label>
+                        </div>
+                        <input type="checkbox" id="use_mmap" name="use_mmap" disabled>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit">Save Overrides</button>
+                    <button type="button" id="clearOverrides">Clear All Overrides</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let modelsData = [];
+        let testModels = new Set();
+        let isGenerating = false;
+        let db;
+        const modelDefaults = new Map();
+
+        let serverUrl = localStorage.getItem('ollamaServerUrl') || 'http://127.0.0.1:11434';
+
+        // Settings modal functionality
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsButton = document.getElementById('settingsButton');
+        const closeSettings = document.getElementById('closeSettings');
+        const settingsForm = document.getElementById('settingsForm');
+        const serverUrlInput = document.getElementById('serverUrl');
+
+        async function fetchOllamaModels() {
+            try {
+                const response = await fetch(`${serverUrl}/api/tags`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                const modelList = document.getElementById('modelList');
+                modelList.innerHTML = ''; // Clear loading message
+
+                if (data.models && data.models.length > 0) {
+                    modelsData = data.models;
+                    updateModelList(modelsData);
+                    updateTestList();
+                    updateButtons();
+                } else {
+                    modelList.innerHTML = '<option>No models found</option>';
+                }
+            } catch (error) {
+                document.getElementById('error').textContent =
+                    `Error loading models: ${error.message}. Make sure Ollama is running and accessible at ${serverUrl}.`;
+            }
+        }
+
+        async function loadModelDefaults(model) {
+            try {
+                console.log(`[DEBUG] Loading defaults for ${model}`);
+                const response = await fetch(`${serverUrl}/api/show`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: model })
+                });
+
+                const modelInfo = await response.json();
+
+                // Extract default parameters from model info
+                const defaults = {
+                    temperature: 0.8,  // Default if not specified in model
+                    top_k: 40,
+                    top_p: 0.9,
+                    repeat_penalty: 1.1,
+                    num_predict: 128,
+                    num_ctx: modelInfo.model_info?.["llama.context_length"] || 2048,
+                    num_gpu: 1,
+                    use_mmap: true
+                };
+
+                modelDefaults.set(model, defaults);
+                console.log(`[DEBUG] Loaded defaults for ${model}:`, defaults);
+                return defaults;
+            } catch (error) {
+                console.error(`[DEBUG] Error loading defaults for ${model}:`, error);
+                return null;
+            }
+        }
+
+
+        function loadSavedModelConfigs() {
+            try {
+                const savedConfigs = localStorage.getItem('modelConfigOverrides');
+                if (savedConfigs) {
+                    const configArray = JSON.parse(savedConfigs);
+                    modelConfigs = new Map(configArray);
+                    console.log('[DEBUG] Loaded saved configs:', Object.fromEntries(modelConfigs));
+                }
+            } catch (error) {
+                console.error('[DEBUG] Error loading saved configs:', error);
+            }
+        }
+
+        // Function to generate a timestamp string for filenames
+        function getTimestampString() {
+            const now = new Date();
+            return now.toISOString()
+                .replace(/[:.]/g, '-')  // Replace colons and periods with dashes
+                .replace('T', '_')      // Replace T with underscore
+                .slice(0, -5);          // Remove milliseconds and timezone
+        }
+
+        async function exportPrompts() {
+            try {
+                const getPrompts = () => new Promise((resolve, reject) => {
+                    const transaction = db.transaction(['prompts'], 'readonly');
+                    const store = transaction.objectStore('prompts');
+                    const request = store.getAll();
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+
+                const prompts = await getPrompts();
+                const timestamp = getTimestampString();
+
+                const exportData = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    prompts: prompts
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                    type: 'application/json'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ollama-prompts-${timestamp}.json`;
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                alert('Prompts exported successfully!');
+            } catch (error) {
+                console.error('Error exporting prompts:', error);
+                alert(`Error exporting prompts: ${error.message}`);
+            }
+        }
+
+        async function importPrompts(file) {
+            try {
+                const content = await file.text();
+                const importData = JSON.parse(content);
+
+                // Validate basic structure
+                if (!importData.version) {
+                    throw new Error('Import file is missing version information');
+                }
+
+                // Handle different data structures and convert to array if needed
+                let promptsArray = [];
+                if (Array.isArray(importData.prompts)) {
+                    promptsArray = importData.prompts;
+                } else if (typeof importData.prompts === 'object' && importData.prompts !== null) {
+                    // Convert object to array if it's an object
+                    promptsArray = Object.entries(importData.prompts).map(([name, content]) => ({
+                        name,
+                        content: typeof content === 'object' ? content.content : content,
+                        created: typeof content === 'object' ? content.created : new Date().toISOString()
+                    }));
+                } else {
+                    throw new Error('Prompts must be either an array or an object');
+                }
+
+                // Validate individual prompts
+                const validPrompts = promptsArray.filter(prompt => {
+                    const isValid = prompt && prompt.name &&
+                        (typeof prompt.content === 'string' || typeof prompt.content === 'object');
+                    if (!isValid) {
+                        console.warn('Skipping invalid prompt:', prompt);
+                    }
+                    return isValid;
+                });
+
+                if (validPrompts.length === 0) {
+                    throw new Error('No valid prompts found in import file');
+                }
+
+                // Import the prompts
+                const transaction = db.transaction(['prompts'], 'readwrite');
+                const store = transaction.objectStore('prompts');
+
+                // Create a promise to handle the transaction completion
+                const importComplete = new Promise((resolve, reject) => {
+                    transaction.oncomplete = resolve;
+                    transaction.onerror = () => reject(transaction.error);
+                });
+
+                // Import each valid prompt
+                let importCount = 0;
+                for (const prompt of validPrompts) {
+                    const promptData = {
+                        name: prompt.name,
+                        content: typeof prompt.content === 'object' ? prompt.content.content : prompt.content,
+                        created: prompt.created || new Date().toISOString()
+                    };
+                    store.put(promptData);
+                    importCount++;
+                }
+
+                // Wait for the transaction to complete
+                await importComplete;
+
+                // Refresh the prompts list
+                loadSavedPrompts();
+                alert(`Successfully imported ${importCount} prompt${importCount !== 1 ? 's' : ''}!`);
+            } catch (error) {
+                console.error('Error importing prompts:', error);
+                alert(`Error importing prompts: ${error.message}\n\nPlease make sure your import file has the correct format.`);
+            }
+        }
+
+
+        settingsForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const newUrl = serverUrlInput.value.trim();
+            if (newUrl) {
+                serverUrl = newUrl;
+                localStorage.setItem('ollamaServerUrl', newUrl);
+                settingsModal.style.display = 'none';
+                // Clear any existing models and errors
+                const modelList = document.getElementById('modelList');
+                modelList.innerHTML = '<option>Loading models...</option>';
+                document.getElementById('error').textContent = '';
+                // Fetch models with new URL
+                fetchOllamaModels();
+            }
+        });
+
+        // Initialize IndexedDB
+        const initDB = () => {
+            const request = indexedDB.open('PromptsDB', 1);
+
+            request.onerror = (event) => {
+                console.error('IndexedDB error:', event.target.error);
+            };
+
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                loadSavedPrompts();
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('prompts')) {
+                    db.createObjectStore('prompts', { keyPath: 'name' });
+                }
+            };
+        };
+
+        // Load saved prompts into the dropdown
+        const loadSavedPrompts = () => {
+            const select = document.getElementById('savedPrompts');
+            select.innerHTML = '<option value="">-- Select a saved prompt --</option>';
+
+            const transaction = db.transaction(['prompts'], 'readonly');
+            const store = transaction.objectStore('prompts');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const prompts = request.result;
+                prompts.sort((a, b) => a.name.localeCompare(b.name));
+
+                prompts.forEach(prompt => {
+                    const option = document.createElement('option');
+                    option.value = prompt.name;
+                    option.textContent = prompt.name;
+                    select.appendChild(option);
+                });
+            };
+        };
+
+        // Save a new prompt
+        const savePrompt = () => {
+            const name = document.getElementById('promptName').value.trim();
+            const content = document.getElementById('promptInput').value.trim();
+
+            if (!name || !content) {
+                alert('Please enter both a name and content for the prompt');
+                return;
+            }
+
+            const transaction = db.transaction(['prompts'], 'readwrite');
+            const store = transaction.objectStore('prompts');
+
+            const prompt = {
+                name: name,
+                content: content,
+                created: new Date().toISOString()
+            };
+
+            const request = store.put(prompt);
+
+            request.onsuccess = () => {
+                loadSavedPrompts();
+                document.getElementById('promptName').value = '';
+                alert('Prompt saved successfully!');
+            };
+
+            request.onerror = () => {
+                alert('Error saving prompt');
+            };
+        };
+
+        // Delete a saved prompt
+        const deletePrompt = () => {
+            const select = document.getElementById('savedPrompts');
+            const selectedName = select.value;
+
+            if (!selectedName) {
+                alert('Please select a prompt to delete');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete the prompt "${selectedName}"?`)) {
+                return;
+            }
+
+            const transaction = db.transaction(['prompts'], 'readwrite');
+            const store = transaction.objectStore('prompts');
+            const request = store.delete(selectedName);
+
+            // request.onsuccess = () => {
+                 loadSavedPrompts();
+            //     alert('Prompt deleted successfully!');
+            // };
+
+            request.onerror = () => {
+                alert('Error deleting prompt');
+            };
+        };
+
+        // Load selected prompt into the textarea
+        const loadSelectedPrompt = () => {
+            const select = document.getElementById('savedPrompts');
+            const selectedName = select.value;
+
+            if (!selectedName) {
+                return;
+            }
+
+            const transaction = db.transaction(['prompts'], 'readonly');
+            const store = transaction.objectStore('prompts');
+            const request = store.get(selectedName);
+
+            request.onsuccess = () => {
+                if (request.result) {
+                    document.getElementById('promptInput').value = request.result.content;
+                    updateSendButton();
+                }
+            };
+        };
+
+
+        async function generateResponse(model, prompt) {
+            try {
+                console.log('[DEBUG] Starting generate response for model:', model);
+
+                // Get model info first
+                const modelInfoResponse = await fetch(`${serverUrl}/api/show`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: model })
+                });
+
+                const modelInfo = await modelInfoResponse.json();
+                console.log('[DEBUG] Got model info:', modelInfo);
+
+                // Get any overrides for this model
+                const modelOverrides = modelConfigs.get(model) || {};
+                console.log(`[DEBUG] Found overrides for ${model}:`, modelOverrides);
+
+                // Get or load model defaults
+                let defaults = modelDefaults.get(model);
+                if (!defaults) {
+                    defaults = await loadModelDefaults(model);
+                    if (!defaults) {
+                        throw new Error('Could not load model defaults');
+                    }
+                }
+
+                // Combine defaults with overrides
+                const parameters = {
+                    ...defaults,
+                    ...modelOverrides
+                };
+
+                console.log('[DEBUG] Final parameters:', parameters);
+
+                // Create the request body
+                const requestBody = {
+                    model: model,
+                    prompt: prompt,
+                    stream: false,
+                    ...parameters
+                };
+
+                console.log('[DEBUG] Final request body:', requestBody);
+
+                // Generate the response
+                const response = await fetch(`${serverUrl}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                console.log('[DEBUG] Response data from API:', data);
+
+                // Return the response with all model information
+                return {
+                    response: data.response,
+                    stats: {
+                        totalDuration: data.total_duration,
+                        loadDuration: data.load_duration,
+                        promptEvalCount: data.prompt_eval_count,
+                        promptEvalDuration: data.prompt_eval_duration,
+                        evalCount: data.eval_count,
+                        evalDuration: data.eval_duration,
+                        modelInfo: modelInfo.model_info,
+                        details: modelInfo.details,
+                        genParams: parameters  // Include the actual parameters used
+                    }
+                };
+            } catch (error) {
+                console.error('[DEBUG] Error in generateResponse:', error);
+                throw new Error(`Error generating response from ${model}: ${error.message}`);
+            }
+        }
+
+
+
+        function createStatsSection(stats, model) {
+            // Helper to check if a parameter is overridden
+            const isOverridden = (paramName) => {
+                const overrides = modelConfigs.get(model) || {};
+                return paramName in overrides;
+            };
+
+            // Helper to create parameter value display with override indicator
+            const createParamValue = (paramName, value) => {
+                const overridden = isOverridden(paramName);
+                return `<span class="stat-value${overridden ? ' override' : ''}">${value}${overridden ? ' (override)' : ''}</span>`;
+            };
+
+            // Get architecture-specific fields based on model family
+            const createArchitectureInfo = () => {
+                const family = stats.details?.family?.toLowerCase();
+                if (family === 'llama') {
+                    return `
+                <div class="stat-item">
+                    <span class="stat-label">Context Length:</span>
+                    <span class="stat-value">${stats.modelInfo?.["llama.context_length"] || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Block Count:</span>
+                    <span class="stat-value">${stats.modelInfo?.["llama.block_count"] || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Attention Heads:</span>
+                    <span class="stat-value">${stats.modelInfo?.["llama.attention.head_count"] || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">KV Heads:</span>
+                    <span class="stat-value">${stats.modelInfo?.["llama.attention.head_count_kv"] || 'N/A'}</span>
+                </div>`;
+                } else if (family === 'phi3') {
+                    // Add phi-specific architecture details if available
+                    return `
+                <div class="stat-item">
+                    <span class="stat-label">Context Length:</span>
+                    <span class="stat-value">${stats.modelInfo?.["phi3.context_length"] || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Model Type:</span>
+                    <span class="stat-value">Phi-3</span>
+                </div>`;
+                }
+                return ''; // No architecture-specific info for unknown families
+            };
+
+            const css = `
+        <style>
+            .override {
+                color: #0066cc;
+                font-weight: bold;
+            }
+            .model-family {
+                font-style: italic;
+                color: #666;
+                margin-left: 8px;
+            }
+        </style>
+    `;
+
+            return `
+        ${css}
+        <div class="stats-section">
+            <strong>Performance Stats:</strong>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Total Time:</span>
+                    <span class="stat-value">${formatDuration(stats.totalDuration)}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Load Time:</span>
+                    <span class="stat-value">${formatDuration(stats.loadDuration)}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Prompt Tokens:</span>
+                    <span class="stat-value">${stats.promptEvalCount}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Prompt Eval Time:</span>
+                    <span class="stat-value">${formatDuration(stats.promptEvalDuration)}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Response Tokens:</span>
+                    <span class="stat-value">${stats.evalCount}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Response Time:</span>
+                    <span class="stat-value">${formatDuration(stats.evalDuration)}</span>
+                </div>
+            </div>
+            <strong class="mt-4 block">Model Parameters:</strong>
+            <div class="stats-grid">
+                <!-- Generation Parameters -->
+                <div class="stat-item">
+                    <span class="stat-label">Temperature:</span>
+                    ${createParamValue('temperature', stats.genParams.temperature)}
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Top K:</span>
+                    ${createParamValue('top_k', stats.genParams.top_k)}
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Top P:</span>
+                    ${createParamValue('top_p', stats.genParams.top_p)}
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Repeat Penalty:</span>
+                    ${createParamValue('repeat_penalty', stats.genParams.repeat_penalty)}
+                </div>
+                <!-- Model Info -->
+                <div class="stat-item">
+                    <span class="stat-label">Format:</span>
+                    <span class="stat-value">${stats.details?.format || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Family:</span>
+                    <span class="stat-value">${stats.details?.family || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Parameter Size:</span>
+                    <span class="stat-value">${stats.details?.parameter_size || 'N/A'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Quantization:</span>
+                    <span class="stat-value">${stats.details?.quantization_level || 'N/A'}</span>
+                </div>
+                <!-- Architecture-specific Info -->
+                ${createArchitectureInfo()}
+            </div>
+        </div>
+    `;
+        }
+
+        async function processModels(prompt) {
+            const resultsDiv = document.getElementById('results');
+            const reportButton = document.querySelector('.report-button');
+            resultsDiv.innerHTML = '';
+            reportButton.disabled = true;
+
+            try {
+                for (const model of testModels) {
+                    console.log("Starting to process model:", model);
+
+                    const resultCard = document.createElement('div');
+                    resultCard.className = 'result-card';
+                    resultCard.innerHTML = `
+                <div class="result-header">
+                    <span>${model}</span>
+                    <span>Processing...</span>
+                </div>
+                <div class="result-content">Waiting for response...</div>
+            `;
+                    resultsDiv.appendChild(resultCard);
+
+                    try {
+                        const result = await generateResponse(model, prompt);
+                        console.log("Result for model:", model, result);
+
+                        const statsHtml = createStatsSection(result.stats, model);  // Pass model name here
+                        console.log("Generated stats HTML:", statsHtml);
+
+                        resultCard.innerHTML = `
+                    <div class="result-header">
+                        <span>${model}</span>
+                        <span>Complete</span>
+                    </div>
+                    <div class="result-content">${result.response}</div>
+                    ${statsHtml}
+                `;
+
+                        // Store parameters and stats for report generation
+                        resultCard.dataset.parameters = JSON.stringify(result.stats.genParams);
+                        resultCard.dataset.stats = JSON.stringify(result.stats);
+
+                    } catch (error) {
+                        console.error("Error processing model:", model, error);
+                        resultCard.innerHTML = `
+                    <div class="result-header">
+                        <span>${model}</span>
+                        <span style="color: #dc3545;">Error</span>
+                    </div>
+                    <div class="result-content" style="color: #dc3545;">${error.message}</div>
+                `;
+                    }
+                }
+
+                // Enable report button after all models are processed
+                reportButton.disabled = false;
+
+            } catch (error) {
+                console.error("Error in processModels:", error);
+                resultsDiv.innerHTML = `<div class="error">Error processing models: ${error.message}</div>`;
+                reportButton.disabled = true;
+            }
+        }
+
+        function updateSendButton() {
+            const sendButton = document.getElementById('sendButton');
+            const promptInput = document.getElementById('promptInput');
+            sendButton.disabled = isGenerating || testModels.size === 0 || !promptInput.value.trim();
+        }
+
+        function sortModels(models, sortType) {
+            const sortedModels = [...models];
+            switch (sortType) {
+                case 'name':
+                    sortedModels.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name-desc':
+                    sortedModels.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                case 'size':
+                    sortedModels.sort((a, b) => a.size - b.size);
+                    break;
+                case 'size-desc':
+                    sortedModels.sort((a, b) => b.size - a.size);
+                    break;
+            }
+            return sortedModels;
+        }
+
+        function updateModelList(models) {
+            const modelList = document.getElementById('modelList');
+            modelList.innerHTML = ''; // Clear current list
+
+            // Get the current sort order and sort the available models
+            const sortOrder = document.getElementById('sortOrder').value;
+            const availableModels = models.filter(model => !testModels.has(model.name));
+            const sortedModels = sortModels(availableModels, sortOrder);
+
+            if (sortedModels.length === 0) {
+                modelList.innerHTML = '<option>No models available</option>';
+            } else {
+                sortedModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.name;
+                    option.textContent = `${model.name} (${formatSize(model.size)})`;
+                    modelList.appendChild(option);
+                });
+            }
+        }
+
+        function updateTestList() {
+            const testSelect = document.getElementById('testModelSelect');
+            const configSection = document.getElementById('configSection');
+
+            if (!testSelect) return;
+
+            testSelect.innerHTML = '';
+
+            if (testModels.size === 0) {
+                const option = document.createElement('option');
+                option.textContent = 'No models selected';
+                testSelect.appendChild(option);
+                if (configSection) {
+                    configSection.style.display = 'none';
+                }
+                return;
+            }
+
+            [...testModels].forEach(modelName => {
+                const model = modelsData.find(m => m.name === modelName);
+                if (model) {
+                    const option = document.createElement('option');
+                    option.value = model.name;
+                    option.textContent = `${model.name} (${formatSize(model.size)})`;
+                    testSelect.appendChild(option);
+                }
+            });
+        }
+
+        function updateButtons() {
+            const addButton = document.getElementById('addButton');
+            const removeButton = document.getElementById('removeButton');
+            const clearButton = document.getElementById('clearButton');
+            const modelList = document.getElementById('modelList');
+            const testSelect = document.getElementById('testModelSelect');
+            const configSection = document.getElementById('configSection');
+
+            if (addButton && modelList) {
+                addButton.disabled = modelList.selectedOptions.length === 0 ||
+                    modelList.value === 'No models available';
+            }
+
+            if (removeButton && testSelect) {
+                const hasValidSelection = testSelect.value && testSelect.value !== 'No models selected';
+                removeButton.disabled = !hasValidSelection;
+
+                if (configSection) {
+                    configSection.style.display = hasValidSelection ? 'block' : 'none';
+                }
+            }
+
+            if (clearButton) {
+                clearButton.disabled = testModels.size === 0;
+            }
+        }
+
+
+
+        function formatSize(bytes) {
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            if (bytes === 0) return '0 Byte';
+            const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        }
+
+        function showModelInfo(model) {
+            const modelInfo = document.getElementById('modelInfo');
+            modelInfo.innerHTML = `
+                <h3>Model Details</h3>
+                <p><strong>Name:</strong> ${model.name}</p>
+                <p><strong>Size:</strong> ${formatSize(model.size)}</p>
+                <p><strong>Modified:</strong> ${new Date(model.modified).toLocaleString()}</p>
+                <p><strong>Digest:</strong> ${model.digest}</p>
+            `;
+        }
+
+        // Add this right after the formatSize function and before the event listeners
+
+        function createReportGenerator() {
+            const reportButton = document.createElement('button');
+            reportButton.className = 'report-button';
+            reportButton.disabled = true; // Start disabled
+            reportButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download Report
+    `;
+
+            // Add event listener for report generation
+            reportButton.addEventListener('click', generateReport);
+
+            // Add it to the report button container
+            const container = document.getElementById('reportButtonContainer');
+            if (container) {
+                container.innerHTML = ''; // Clear any existing content
+                container.appendChild(reportButton);
+            }
+
+            return reportButton;
+        }
+
+        // Clear results and disable report button when clearing test models
+        document.getElementById('clearButton').addEventListener('click', () => {
+            testModels.clear();
+            modelDefaults.clear();
+            updateModelList(modelsData);
+            updateTestList();
+            updateButtons();
+            updateSendButton();
+
+            // Clear results and disable report button
+            document.getElementById('results').innerHTML = '';
+            const reportButton = document.querySelector('.report-button');
+            if (reportButton) {
+                reportButton.disabled = true;
+            }
+        });
+
+        function formatDuration(ns) {
+            const ms = ns / 1000000; // Convert nanoseconds to milliseconds
+            return ms < 1000 ?
+                `${ms.toFixed(2)}ms` :
+                `${(ms / 1000).toFixed(2)}s`;
+        }
+
+        // Function to generate a timestamp string for filenames
+        function getTimestampString() {
+            const now = new Date();
+            return now.toISOString()
+                .replace(/[:.]/g, '-')  // Replace colons and periods with dashes
+                .replace('T', '_')      // Replace T with underscore
+                .slice(0, -5);          // Remove milliseconds and timezone
+        }
+
+        async function exportPrompts() {
+            try {
+                const getPrompts = () => new Promise((resolve, reject) => {
+                    const transaction = db.transaction(['prompts'], 'readonly');
+                    const store = transaction.objectStore('prompts');
+                    const request = store.getAll();
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+
+                const prompts = await getPrompts();
+                const timestamp = getTimestampString();
+
+                const exportData = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    prompts: prompts
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                    type: 'application/json'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ollama-prompts-${timestamp}.json`;
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                alert('Prompts exported successfully!');
+            } catch (error) {
+                console.error('Error exporting prompts:', error);
+                alert(`Error exporting prompts: ${error.message}`);
+            }
+        }
+
+        function generateReport() {
+            const promptInput = document.getElementById('promptInput').value;
+            const resultsDiv = document.getElementById('results');
+            const resultCards = resultsDiv.getElementsByClassName('result-card');
+            const timestamp = getTimestampString();
+
+            let markdown = `# Model Test Report\n\n`;
+            markdown += `Generated: ${new Date().toLocaleString()}\n\n`;
+            markdown += `## Test Prompt\n\n\`\`\`\n${promptInput}\n\`\`\`\n\n`;
+
+            Array.from(resultCards).forEach(card => {
+                const modelName = card.querySelector('.result-header span').textContent;
+                const response = card.querySelector('.result-content').textContent;
+                const parameters = JSON.parse(card.dataset.parameters || '{}');
+                const stats = JSON.parse(card.dataset.stats || '{}');
+                const overrides = modelConfigs.get(modelName) || {};
+
+                markdown += `### ${modelName}\n\n`;
+
+                // Parameters section with override indicators
+                markdown += `#### Parameters:\n\n`;
+                Object.entries(parameters).forEach(([key, value]) => {
+                    const isOverride = key in overrides;
+                    markdown += `- ${key}: ${value}${isOverride ? ' (override)' : ''}\n`;
+                });
+                markdown += '\n';
+
+                // Performance stats
+                markdown += `#### Performance Stats:\n\n`;
+                if (stats) {
+                    markdown += `- Total Time: ${formatDuration(stats.totalDuration)}\n`;
+                    markdown += `- Load Time: ${formatDuration(stats.loadDuration)}\n`;
+                    markdown += `- Prompt Tokens: ${stats.promptEvalCount}\n`;
+                    markdown += `- Prompt Eval Time: ${formatDuration(stats.promptEvalDuration)}\n`;
+                    markdown += `- Response Tokens: ${stats.evalCount}\n`;
+                    markdown += `- Response Time: ${formatDuration(stats.evalDuration)}\n\n`;
+                }
+
+                // Model info
+                markdown += `#### Model Info:\n\n`;
+                markdown += `- Format: ${stats.details?.format || 'N/A'}\n`;
+                markdown += `- Family: ${stats.details?.family || 'N/A'}\n`;
+                markdown += `- Parameter Size: ${stats.details?.parameter_size || 'N/A'}\n`;
+                markdown += `- Quantization: ${stats.details?.quantization_level || 'N/A'}\n\n`;
+
+                markdown += `#### Response:\n\n\`\`\`\n${response}\n\`\`\`\n\n`;
+            });
+
+            // Create and trigger download with timestamped filename
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ollama-model-test-report-${timestamp}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Store only overridden configurations for each model
+        let modelConfigs = new Map();
+
+        function saveModelConfigs() {
+            console.log('[DEBUG] Saving all model configs:', Object.fromEntries(modelConfigs));
+            localStorage.setItem('modelConfigOverrides', JSON.stringify([...modelConfigs]));
+        }
+
+        // Show configuration modal for a specific model
+        function showModelConfig(modelName) {
+            const modal = document.getElementById('modelConfigModal');
+            const form = document.getElementById('modelConfigForm');
+            const config = modelConfigs.get(modelName) || {};
+
+            console.log(`Opening config for ${modelName}, current config:`, config); // Debug log
+
+            // Reset form
+            form.reset();
+
+            // Set current overrides
+            Object.entries(config).forEach(([key, value]) => {
+                const input = form.elements[key];
+                const enableCheckbox = document.getElementById(`enable_${key}`);
+
+                if (input && enableCheckbox) {
+                    enableCheckbox.checked = true;
+                    input.disabled = false;
+                    if (input.type === 'checkbox') {
+                        input.checked = value;
+                    } else {
+                        input.value = value;
+                    }
+                }
+            });
+
+            // Show modal
+            modal.style.display = 'block';
+
+            // Handle form submission
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                const newConfig = {};
+
+                // Only save enabled parameters
+                document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+                    if (checkbox.checked) {
+                        const paramName = checkbox.id.replace('enable_', '');
+                        const input = form.elements[paramName];
+                        if (input) {
+                            newConfig[paramName] = input.type === 'checkbox' ?
+                                input.checked :
+                                parseFloat(input.value);
+                        }
+                    }
+                });
+
+                console.log(`Saving new config for ${modelName}:`, newConfig); // Debug log
+
+                if (Object.keys(newConfig).length > 0) {
+                    modelConfigs.set(modelName, newConfig);
+                } else {
+                    modelConfigs.delete(modelName);
+                }
+
+                saveModelConfigs();
+                modal.style.display = 'none';
+            };
+        }
+
+        function debugModelConfigs() {
+            console.log('[DEBUG] Current modelConfigs Map:', Object.fromEntries(modelConfigs));
+            console.log('[DEBUG] localStorage configs:', localStorage.getItem('modelConfigOverrides'));
+        }
+
+
+
+        // Add event listener for the test model select
+        document.getElementById('testModelSelect').addEventListener('change', (e) => {
+            const configSection = document.getElementById('configSection');
+            const modelList = document.getElementById('modelList');
+
+            if (e.target.value && e.target.value !== 'No models selected') {
+                if (configSection) {
+                    configSection.style.display = 'block';
+                }
+                if (modelList) {
+                    modelList.selectedIndex = -1;
+                }
+            } else {
+                if (configSection) {
+                    configSection.style.display = 'none';
+                }
+            }
+            updateButtons();
+        });
+
+        // Add event listener for the config button
+        document.getElementById('configButton').addEventListener('click', () => {
+            const selectedModel = document.getElementById('testModelSelect').value;
+            if (selectedModel && selectedModel !== 'No models selected') {
+                showModelConfig(selectedModel);
+            }
+        });
+
+        // Add event listeners for transfer buttons
+        document.getElementById('addButton').addEventListener('click', async () => {
+            const modelList = document.getElementById('modelList');
+            const selectedOptions = Array.from(modelList.selectedOptions);
+
+            if (selectedOptions.length > 0 && selectedOptions[0].value !== 'No models available') {
+                for (const option of selectedOptions) {
+                    const modelName = option.value;
+                    testModels.add(modelName);
+
+                    // Load defaults when model is added to test list
+                    if (!modelDefaults.has(modelName)) {
+                        await loadModelDefaults(modelName);
+                    }
+                }
+                updateModelList(modelsData);
+                updateTestList();
+                updateButtons();
+                updateSendButton();
+            }
+        });
+
+        document.getElementById('removeButton').addEventListener('click', () => {
+            const testSelect = document.getElementById('testModelSelect');
+            const selectedModel = testSelect.value;
+
+            if (selectedModel && selectedModel !== 'No models selected') {
+                testModels.delete(selectedModel);
+                // Remove defaults when model is removed from test list
+                modelDefaults.delete(selectedModel);
+                updateModelList(modelsData);
+                updateTestList();
+                updateButtons();
+                updateSendButton();
+            }
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            testModels.clear();
+            // Clear all model defaults
+            modelDefaults.clear();
+            updateModelList(modelsData);
+            updateTestList();
+            updateButtons();
+            updateSendButton();
+
+            // Clear results and disable report button
+            document.getElementById('results').innerHTML = '';
+            document.querySelector('.report-button').disabled = true;
+        });
+
+        // Add event listener for prompt input and send button
+        document.getElementById('promptInput').addEventListener('input', updateSendButton);
+
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const promptInput = document.getElementById('promptInput');
+            const prompt = promptInput.value.trim();
+
+            if (prompt && testModels.size > 0) {
+                const sendButton = document.getElementById('sendButton');
+                sendButton.disabled = true;
+                isGenerating = true;
+
+                try {
+                    await processModels(prompt);
+                } catch (error) {
+                    document.getElementById('error').textContent =
+                        `Error processing models: ${error.message}`;
+                } finally {
+                    isGenerating = false;
+                    updateSendButton();
+                }
+            }
+        });
+
+
+        // Add event listeners for list selection changes
+        document.getElementById('modelList').addEventListener('change', (e) => {
+            const testSelect = document.getElementById('testModelSelect');
+            // Only clear selection if the element exists
+            if (testSelect && e.target.selectedOptions.length > 0) {
+                testSelect.selectedIndex = -1;
+            }
+            updateButtons();
+        });
+
+
+        // Add event listener for sort order changes
+        document.getElementById('sortOrder').addEventListener('change', (e) => {
+            if (modelsData.length > 0) {
+                const sortedModels = sortModels(modelsData, e.target.value);
+                updateModelList(sortedModels);
+                updateButtons();
+            }
+        });
+
+        // Clear overrides button handler
+        document.getElementById('clearOverrides')?.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all parameter overrides?')) {
+                const selectedModel = document.getElementById('testModelSelect').value;
+                if (selectedModel && selectedModel !== 'No models selected') {
+                    console.log(`Clearing overrides for ${selectedModel}`); // Debug log
+                    modelConfigs.delete(selectedModel);
+                    saveModelConfigs();
+                }
+
+                const form = document.getElementById('modelConfigForm');
+                form.reset();
+                document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+                    const paramName = checkbox.id.replace('enable_', '');
+                    const input = document.getElementById(paramName);
+                    if (input) {
+                        input.disabled = true;
+                    }
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the database
+            initDB();
+            loadSavedModelConfigs();
+
+            // Update the settings modal content
+            const modalContent = document.querySelector('#settingsModal .modal-content');
+            modalContent.innerHTML = `
+        <span class="close-button" id="closeSettings">&times;</span>
+        <h2>Settings</h2>
+        <form class="settings-form" id="settingsForm">
+            <div>
+                <label for="serverUrl">Ollama Server URL:</label>
+                <input type="text" id="serverUrl" name="serverUrl" placeholder="http://127.0.0.1:11434">
+            </div>
+            <div class="prompt-management-section" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
+                <h3>Prompt Management</h3>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="button" id="exportPromptsBtn" class="action-button">Export Prompts</button>
+                    <input type="file" id="importPromptsInput" accept=".json" style="display: none;">
+                    <button type="button" id="importPromptsBtn" class="action-button">Import Prompts</button>
+                </div>
+            </div>
+            <button type="submit" style="margin-top: 20px;">Save Settings</button>
+        </form>`;
+
+            // Re-attach settings modal event listeners
+            const settingsModal = document.getElementById('settingsModal');
+            const settingsButton = document.getElementById('settingsButton');
+            const closeSettings = document.getElementById('closeSettings');
+            const serverUrlInput = document.getElementById('serverUrl');
+
+            settingsButton.addEventListener('click', () => {
+                settingsModal.style.display = 'block';
+                serverUrlInput.value = serverUrl;
+            });
+
+            closeSettings.addEventListener('click', () => {
+                settingsModal.style.display = 'none';
+            });
+
+            // Close settings modal when clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+            });
+
+            // Add event listeners for import/export buttons
+            document.getElementById('exportPromptsBtn').addEventListener('click', exportPrompts);
+
+            document.getElementById('importPromptsBtn').addEventListener('click', () => {
+                document.getElementById('importPromptsInput').click();
+            });
+
+            document.getElementById('importPromptsInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    if (file.type !== 'application/json') {
+                        alert('Please select a JSON file.');
+                        return;
+                    }
+                    importPrompts(file);
+                    e.target.value = ''; // Reset file input
+                }
+            });
+
+            // Add config button event listener
+            document.getElementById('configButton').addEventListener('click', () => {
+                const selectedModel = document.getElementById('testModelSelect').value;
+                if (selectedModel && selectedModel !== 'No models selected') {
+                    showModelConfig(selectedModel);
+                }
+            });
+
+            // Existing prompt management event listeners
+            document.getElementById('savePromptBtn').addEventListener('click', savePrompt);
+            document.getElementById('deletePromptBtn').addEventListener('click', deletePrompt);
+            document.getElementById('savedPrompts').addEventListener('change', loadSelectedPrompt);
+
+            // Create report generator
+            document.getElementById('reportButtonContainer').appendChild(createReportGenerator());
+
+            // Enable/disable parameter inputs based on checkboxes
+            document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const paramName = e.target.id.replace('enable_', '');
+                    const input = document.getElementById(paramName);
+                    if (input) {
+                        input.disabled = !e.target.checked;
+                    }
+                });
+            });
+
+            // Clear overrides button handler
+            document.getElementById('clearOverrides').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear all parameter overrides?')) {
+                    const selectedModel = document.getElementById('testModelSelect').value;
+                    if (selectedModel && selectedModel !== 'No models selected') {
+                        console.log(`Clearing overrides for ${selectedModel}`);
+                        modelConfigs.delete(selectedModel);
+                        saveModelConfigs();
+                    }
+
+                    const form = document.getElementById('modelConfigForm');
+                    form.reset();
+                    document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+                        const paramName = checkbox.id.replace('enable_', '');
+                        const input = document.getElementById(paramName);
+                        if (input) {
+                            input.disabled = true;
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('settingsForm').addEventListener('submit', (event) => {
+                event.preventDefault();
+                const newUrl = serverUrlInput.value.trim();
+                if (newUrl) {
+                    serverUrl = newUrl;
+                    localStorage.setItem('ollamaServerUrl', newUrl);
+                    settingsModal.style.display = 'none';
+                    // Clear any existing models and errors
+                    const modelList = document.getElementById('modelList');
+                    modelList.innerHTML = '<option>Loading models...</option>';
+                    document.getElementById('error').textContent = '';
+                    // Fetch models with new URL
+                    fetchOllamaModels();
+                }
+            });
+
+            // Initialize server URL input with saved value
+            serverUrlInput.value = localStorage.getItem('ollamaServerUrl') || 'http://127.0.0.1:11434';
+
+            // Modal close handlers
+            document.getElementById('closeModelConfig').addEventListener('click', () => {
+                document.getElementById('modelConfigModal').style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                const modal = document.getElementById('modelConfigModal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Add styles for new elements
+            const style = document.createElement('style');
+            style.textContent = `
+        .prompt-management-section h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+        
+        .action-button {
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .action-button:hover {
+            background-color: #0b5ed7;
+        }
+    `;
+            document.head.appendChild(style);
+
+            // Initial fetch of models
+            fetchOllamaModels();
+        });
+
+        // Fetch models when the page loads
+        fetchOllamaModels();
+    </script>
+</body>
+
+</html>
