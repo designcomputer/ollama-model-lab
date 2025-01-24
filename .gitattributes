@@ -1,5 +1,10 @@
-*.html linguist-language=JavaScript
-*.bat linguist-language=Shell
-example-*.json linguist-documentation
-example-*.md linguist-documentation
+*.html linguist-detectable=true
+*.md linguist-detectable=false
+*.json linguist-detectable=false
+*.bat linguist-detectable=true linguist-language=Shell
+*.png linguist-detectable=false
+
+# Documentation
+README.md linguist-documentation
+example-*.* linguist-documentation
 screenshot.png linguist-documentation
