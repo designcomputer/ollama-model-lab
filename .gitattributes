@@ -1,0 +1,5 @@
+*.html linguist-language=JavaScript
+*.bat linguist-language=Shell
+example-*.json linguist-documentation
+example-*.md linguist-documentation
+screenshot.png linguist-documentation
