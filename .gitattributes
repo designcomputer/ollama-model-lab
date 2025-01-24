@@ -1,10 +1,5 @@
-*.html linguist-detectable=true
-*.md linguist-detectable=false
-*.json linguist-detectable=false
-*.bat linguist-detectable=true linguist-language=Shell
-*.png linguist-detectable=false
-
-# Documentation
-README.md linguist-documentation
-example-*.* linguist-documentation
-screenshot.png linguist-documentation
+*.html linguist-language=HTML
+*.js linguist-language=JavaScript
+* linguist-vendored
+*.html linguist-vendored=false
+*.js linguist-vendored=false
