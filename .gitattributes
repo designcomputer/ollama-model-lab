@@ -1,5 +1,2 @@
-*.html linguist-language=HTML
-*.js linguist-language=JavaScript
-* linguist-vendored
-*.html linguist-vendored=false
-*.js linguist-vendored=false
+index.html linguist-language=JavaScript
+index.html linguist-vendored=false
