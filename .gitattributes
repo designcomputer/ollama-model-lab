@@ -1,2 +1,4 @@
 index.html linguist-language=JavaScript
 index.html linguist-vendored=false
+
+.github/workflows/*.lock.yml linguist-generated=true merge=ours

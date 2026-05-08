@@ -8,6 +8,7 @@ permissions:
   contents: read
   actions: read
   issues: read
+  pull-requests: read
 engine: copilot
 strict: true
 timeout-minutes: 5

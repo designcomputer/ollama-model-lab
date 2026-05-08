@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
   pull-requests: read
 engine: copilot
 strict: true
@@ -22,7 +23,6 @@ safe-outputs:
   add-labels:
     allowed: [bug, enhancement, documentation, needs-review, ready-to-merge]
   add-comment:
-  request-changes:
 ---
 
 # Pull Request Review
